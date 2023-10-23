@@ -16,6 +16,8 @@ This script will:
     ```
 
 1. Fill the settings in `settings_example.py` and rename it to `settings.py`.
+More info on obtaining Lidl-Plus refresh token: https://github.com/Andre0512/lidl-plus#commandline-tool.
+To get the IDs from Grocy, you can go to `Settings` -> `REST API browser` and query the `GET /objects/{entity}` with `locations` or `quantity_units` selected as entity.
 
 1. Open Lidl-Plus app, find the digital receipts that you want processed and star them. (Make sure they are on the "Starred" tab.)
 
