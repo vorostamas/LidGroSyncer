@@ -1,0 +1,10 @@
+version: '3'
+services:
+  lidgrosyncer:
+    image: lidgrosyncer
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lidgrosyncer
+    volumes:
+      - .:/app
