@@ -1,13 +1,14 @@
 This software is unofficial and is not related in any way to Lidl or Grocy. It is using [lidl-plus](https://github.com/Andre0512/lidl-plus) requests and can stop working at anytime!
 
 # LidGroSyncer
-Easily integrate your Lidl receipts into Grocy
+Easily integrate your Lidl receipts into [Grocy](https://github.com/grocy/grocy)
 
 This script will:
 - Run through all your receipts and process the starred ones
 - Check each item's barcode in Grocy:
     - If the product exists in Grocy it will purchase the given quantity of the product
     - If the product doesn't exist it will create the product in Grocy and add the barcode for it.
+- Run periodically, the interval can be set in the settings.
 
 ## Usage
 1. Install requirements: 
@@ -23,3 +24,8 @@ To get the IDs from Grocy, you can go to `Settings` -> `REST API browser` and qu
 
 1. Run `lidgrosyncer.py`
 
+## Docker
+If you want to run it in Docker:
+```
+docker-compose up
+```
