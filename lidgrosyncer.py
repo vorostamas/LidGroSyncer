@@ -177,7 +177,7 @@ grocy = Grocy(base_url=GROCY_URL, api_key=GROCY_API_KEY, port=GROCY_PORT)
 
 def process_receipts():
     processed_ids = load_processed_ids()
-    for ticket in lidl.tickets(only_favorite=PROCESS_ONLY_FAVORITES):
+    for ticket in lidl.tickets(PROCESS_ONLY_FAVORITES):
         receipt_id = ticket["id"]
         if receipt_id not in processed_ids:
             receipt = lidl.ticket(receipt_id)
