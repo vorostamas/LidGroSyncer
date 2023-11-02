@@ -123,9 +123,9 @@ def create_new_product(name):
     )
     if not get_product_by_name:
         _LOGGER.info(name + " is not in product names, creating new product")
-        return grocy.add_generic(entity_type=EntityType.PRODUCTS, data=payload)[
-            "created_object_id"
-        ]
+        response = grocy.add_generic(entity_type=EntityType.PRODUCTS, data=payload)
+        if response is not None:
+            return response["created_object_id"]
     else:
         return get_product_by_name[0]["id"]
 
@@ -140,9 +140,11 @@ def add_barcode(product_id, barcode):
         "qu_id": "1",
     }
     try:
-        return grocy.add_generic(entity_type=EntityType.PRODUCT_BARCODES, data=payload)[
-            "created_object_id"
-        ]
+        response = grocy.add_generic(
+            entity_type=EntityType.PRODUCT_BARCODES, data=payload
+        )
+        if response is not None:
+            return response["created_object_id"]
     except GrocyError as error:
         _LOGGER.error("Error during barcode creation, message: %s", error.message)
         raise Exception("Barcode creation exception: ", error)
