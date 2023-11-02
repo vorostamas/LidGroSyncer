@@ -175,13 +175,6 @@ lidl = LidlPlusApi(LIDL_LANGUAGE, LIDL_COUNTRY, LIDL_REFRESH_TOKEN)
 grocy = Grocy(base_url=GROCY_URL, api_key=GROCY_API_KEY, port=GROCY_PORT)
 
 
-def get_generic_object_ids(entity_type: EntityType, filename: str):
-    objects = grocy.get_generic_objects_for_type(entity_type)
-    with open(filename, "w") as file:
-        for object in objects:
-            file.write(f"Name: {object['name']}, ID: {object['id']} \n")
-
-
 def process_receipts():
     processed_ids = load_processed_ids()
     for ticket in lidl.tickets(only_favorite=PROCESS_ONLY_FAVORITES):
