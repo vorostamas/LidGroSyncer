@@ -26,7 +26,9 @@ location_id = settings["GROCY_LOCATION_ID"]
 default_consume_location_id = settings["GROCY_LOCATION_ID"]
 grocy_shopping_location_id = settings["GROCY_SHOPPING_LOCATION_ID"]
 default_best_before_days = settings["GROCY_DEFAULT_BEST_BEFORE_DAYS"]
-default_best_before_days_after_thawing = settings["GROCY_DEFAULT_BEST_BEFORE_DAYS_AFTER_THAWING"]
+default_best_before_days_after_thawing = settings[
+    "GROCY_DEFAULT_BEST_BEFORE_DAYS_AFTER_THAWING"
+]
 product_group_id = settings["GROCY_PRODUCT_GROUP_ID"]
 qu_id_stock = settings["GROCY_QU_ID_STOCK"]
 qu_id_purchase = settings["GROCY_QU_ID_PURCHASE"]
@@ -58,7 +60,7 @@ def save_receipt(receipt):
     receipts_folder = "receipts"
     if not os.path.exists(receipts_folder):
         os.makedirs(receipts_folder)
-    with open(f"{receipts_folder}/{receipt['id']}.json", 'w', encoding="utf8") as f:
+    with open(f"{receipts_folder}/{receipt['id']}.json", "w", encoding="utf8") as f:
         json.dump(receipt, f, ensure_ascii=False)
 
 
@@ -69,15 +71,15 @@ def create_best_before_date(purchase_date):
 
 def purchase_product(product_id, amount, price, date, name=None):
     best_before_date = create_best_before_date(date)
-    amount = float(amount.replace(',', '.'))
-    price = float(price.replace(',', '.'))
+    amount = float(amount.replace(",", "."))
+    price = float(price.replace(",", "."))
     _LOGGER.info(
-        f"Purchasing product: product_id: {product_id}, name:{name} amount:{amount}, price:{price}, best_before_date: {best_before_date}")
+        f"Purchasing product: product_id: {product_id}, name:{name} amount:{amount}, price:{price}, best_before_date: {best_before_date}"
+    )
     try:
         grocy.add_product(product_id, amount, price, best_before_date)
     except GrocyError as error:
-        _LOGGER.error(
-            "Error during product purchase, message: %s", error.message)
+        _LOGGER.error("Error during product purchase, message: %s", error.message)
         raise Exception("Purchase error: ", error)
 
 
@@ -112,17 +114,20 @@ def create_new_product(name):
         "not_check_stock_fulfillment_for_recipes": "0",
         "hide_on_stock_overview": "0",
         "no_own_stock": "0",
-        "parent_product_id": ""
+        "parent_product_id": "",
     }
 
     # Prevent creating a product with an existing product name
     get_product_by_name = grocy.get_generic_objects_for_type(
-        EntityType.PRODUCTS, [f"name={name}"])
+        EntityType.PRODUCTS, [f"name={name}"]
+    )
     if not get_product_by_name:
         _LOGGER.info(name + " is not in product names, creating new product")
-        return grocy.add_generic(entity_type=EntityType.PRODUCTS, data=payload)['created_object_id']
+        return grocy.add_generic(entity_type=EntityType.PRODUCTS, data=payload)[
+            "created_object_id"
+        ]
     else:
-        return get_product_by_name[0]['id']
+        return get_product_by_name[0]["id"]
 
 
 def add_barcode(product_id, barcode):
@@ -132,23 +137,23 @@ def add_barcode(product_id, barcode):
         "amount": "1",
         "shopping_location_id": grocy_shopping_location_id,
         "note": "Automatically added by LidGroSyncer",
-        "qu_id": "1"
+        "qu_id": "1",
     }
     try:
-        return grocy.add_generic(entity_type=EntityType.PRODUCT_BARCODES, data=payload)["created_object_id"]
+        return grocy.add_generic(entity_type=EntityType.PRODUCT_BARCODES, data=payload)[
+            "created_object_id"
+        ]
     except GrocyError as error:
-        _LOGGER.error(
-            "Error during barcode creation, message: %s", error.message)
+        _LOGGER.error("Error during barcode creation, message: %s", error.message)
         raise Exception("Barcode creation exception: ", error)
 
 
 def purchase_products(receipt):
     _LOGGER.info(f"Processing ticket with id {receipt['id']}")
-    for item in receipt['itemsLine']:
-        name = item['name']
-        _LOGGER.debug(
-            f"Product name: {name}, amount: {item['quantity']}")
-        barcode = item['codeInput']
+    for item in receipt["itemsLine"]:
+        name = item["name"]
+        _LOGGER.debug(f"Product name: {name}, amount: {item['quantity']}")
+        barcode = item["codeInput"]
         product = get_product_by_barcode(barcode)
 
         if product is None:
@@ -157,9 +162,9 @@ def purchase_products(receipt):
         else:
             product_id = product.id
 
-        amount = item['quantity']
-        price = item['currentUnitPrice']
-        date = receipt['date']
+        amount = item["quantity"]
+        price = item["currentUnitPrice"]
+        date = receipt["date"]
         purchase_product(product_id, amount, price, date, name)
 
 
@@ -180,15 +185,15 @@ def get_generic_object_ids(entity_type: EntityType, filename: str):
 def process_receipts():
     processed_ids = load_processed_ids()
     for ticket in lidl.tickets(only_favorite=PROCESS_ONLY_FAVORITES):
-        receipt_id = ticket['id']
+        receipt_id = ticket["id"]
         if receipt_id not in processed_ids:
             receipt = lidl.ticket(receipt_id)
             save_receipt(receipt)
             purchase_products(receipt)
             mark_receipt_processed(receipt_id)
         else:
-            _LOGGER.info(
-                f"Skipping {receipt_id} because it's already processed")
+            _LOGGER.info(f"Skipping {receipt_id} because it's already processed")
+
 
 while True:
     process_receipts()
