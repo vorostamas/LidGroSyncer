@@ -14,6 +14,7 @@ from pygrocy.errors import GrocyError
 LIDL_LANGUAGE = settings["LIDL_LANGUAGE"]
 LIDL_COUNTRY = settings["LIDL_COUNTRY"]
 LIDL_REFRESH_TOKEN = settings["LIDL_REFRESH_TOKEN"]
+PROCESS_ONLY_FAVORITES = settings["PROCESS_ONLY_FAVORITES"]
 
 GROCY_URL = settings["GROCY_URL"]
 GROCY_PORT = settings["GROCY_PORT"]
@@ -178,17 +179,13 @@ def get_generic_object_ids(entity_type: EntityType, filename: str):
 
 def process_receipts():
     processed_ids = load_processed_ids()
-    for ticket in lidl.tickets():
+    for ticket in lidl.tickets(only_favorite=PROCESS_ONLY_FAVORITES):
         receipt_id = ticket['id']
         if receipt_id not in processed_ids:
-            if(ticket['isFavorite']): 
-                receipt = lidl.ticket(receipt_id)
-                save_receipt(receipt)
-                purchase_products(receipt)
-                mark_receipt_processed(receipt_id)
-            else:
-                _LOGGER.info(
-                    f"Skipping {receipt_id} because it's not favorite")
+            receipt = lidl.ticket(receipt_id)
+            save_receipt(receipt)
+            purchase_products(receipt)
+            mark_receipt_processed(receipt_id)
         else:
             _LOGGER.info(
                 f"Skipping {receipt_id} because it's already processed")
