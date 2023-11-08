@@ -69,15 +69,13 @@ def create_best_before_date(purchase_date):
     return date_object + timedelta(days=default_best_before_days)
 
 
-def purchase_product(product_id, amount, price, date, name=None):
+def purchase_product(product_id, quantity, price, date, name=None):
     best_before_date = create_best_before_date(date)
-    amount = float(amount.replace(",", "."))
-    price = float(price.replace(",", "."))
     _LOGGER.info(
-        f"Purchasing product: product_id: {product_id}, name:{name} amount:{amount}, price:{price}, best_before_date: {best_before_date}"
+        f"Purchasing product: product_id: {product_id}, name: {name} quantity: {quantity}, price: {price}, best_before_date: {best_before_date}"
     )
     try:
-        grocy.add_product(product_id, amount, price, best_before_date)
+        grocy.add_product(product_id, quantity, price, best_before_date)
     except GrocyError as error:
         _LOGGER.error("Error during product purchase, message: %s", error.message)
         raise Exception("Purchase error: ", error)
@@ -150,11 +148,26 @@ def add_barcode(product_id, barcode):
         raise Exception("Barcode creation exception: ", error)
 
 
+def string_to_float(input_string):
+    input_string = input_string.replace(",", ".")
+    return float(input_string)
+
+
+def calculate_price(item):
+    discounts = float()
+    for discount in item["discounts"]:
+        amount = string_to_float(discount["amount"])
+        discounts += amount
+    price = string_to_float(item["currentUnitPrice"])
+    price -= discounts
+    return price
+
+
 def purchase_products(receipt):
     _LOGGER.info(f"Processing ticket with id {receipt['id']}")
     for item in receipt["itemsLine"]:
         name = item["name"]
-        _LOGGER.debug(f"Product name: {name}, amount: {item['quantity']}")
+        _LOGGER.debug(f"Product name: {name}, quantity: {item['quantity']}")
         barcode = item["codeInput"]
         product = get_product_by_barcode(barcode)
 
@@ -164,10 +177,10 @@ def purchase_products(receipt):
         else:
             product_id = product.id
 
-        amount = item["quantity"]
-        price = item["currentUnitPrice"]
+        quantity = string_to_float(item["quantity"])
+        price = calculate_price(item)
         date = receipt["date"]
-        purchase_product(product_id, amount, price, date, name)
+        purchase_product(product_id, quantity, price, date, name)
 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
